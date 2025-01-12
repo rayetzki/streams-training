@@ -1,6 +1,7 @@
 'use strict'
 
 const fs = require('fs')
+const zlib = require('zlib');
 
 // use this to parse the XML file
 const parseString = require('xml2js').parseString
@@ -30,10 +31,14 @@ function parse () {
   console.log('parsing', file)
 
   fs.readFile(file, function (err, data) {
-    if (err) {
-      throw err
-    }
+    if (err) throw err
 
-    // TODO: decompress the file, then parse the XML, and then call parse() again
+    const decompressedFile = zlib.brotliDecompressSync(data);
+
+    parseString(decompressedFile.toString(), (err, xml) => {
+      if (err) throw err;
+      total += xml.mediawiki.page.length;
+      parse();
+    });
   })
 }
